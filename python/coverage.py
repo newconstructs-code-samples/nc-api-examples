@@ -7,7 +7,7 @@ import ast
 
 ##############################################################################################
 # Thanks for your interest in New Constructs!
-# This file demonstrates requesting data for MSFT from our sector & industry API.
+# This file demonstrates requesting data for MSFT from our coverage API.
 # For information on all our datasets, see:
 # https://www.newconstructs.com/data
 # https://client.newconstructs.com/nc/documentation/api.htm
@@ -20,12 +20,17 @@ API_BASE_URL = 'https://api.newconstructs.com/v1'
 API_KEY = 'YOUR_KEY_HERE'
 
 def load_data_to_csv():
-  final_csv = '/tmp/new_constructs_sector_and_industry_sample.csv'
-  nc_endpoint = 'sector'
+  final_csv = '/tmp/new_constructs_coverage_sample.csv'
+  nc_endpoint = 'coverage'
   
-  tickers = ['TECHNOLOGYSEC', 'BEVERAGESI']
-  prior_years = [1, 2, 3]
-  datapoints = ['ROIC_WAVG', 'WACC_WAVG']
+  tickers = [
+    ('stock', 'AAPL'),
+    ('stock', 'NFLX'),
+    ('etf', 'XLF'),
+    ('etf', 'QQQ'),
+    ('mf', 'GAFFX'),
+    ('mf', 'AUENX')
+  ]
   
   headers = {
     'x-api-key': API_KEY,
@@ -35,19 +40,17 @@ def load_data_to_csv():
   
   data = []
   
-  for ticker in tickers:
+  for type, ticker in tickers:
     print('Requesting data for {}...'.format(ticker))
-    for year in prior_years:
-      for datapoint in datapoints:
-        data_item = get_data(headers, nc_endpoint, ticker, year, datapoint)
-        if data_item and len(data_item) > 0:
-          data.append(data_item)
+    data.append(get_data(headers, nc_endpoint, type, ticker))
   
-  write_results_to_csv(final_csv, data, header=['ticker', 'name', 'prior_year', 'datapoint', 'datavalue'], truncate=True, delimiter=',')
+  write_results_to_csv(final_csv, data,
+                       header=['ticker', 'name', 'type', 'sector', 'sector_name', 'subsector', 'subsector_name', 'industry', 'industry_name', 'subindustry', 'subindustry_name',
+                               'last_trade_date'], truncate=True, delimiter=',')
 
 
-def get_data(headers, nc_endpoint, ticker, year, datapoint):
-  url = '{}/{}/{}?datapoint={}&prior_year={}'.format(API_BASE_URL, nc_endpoint, ticker, datapoint, year)
+def get_data(headers, nc_endpoint, type, ticker):
+  url = '{}/{}/{}/{}'.format(API_BASE_URL, nc_endpoint, type, ticker)
   
   response = requests.get(url=url, headers=headers)
   
@@ -55,10 +58,12 @@ def get_data(headers, nc_endpoint, ticker, year, datapoint):
     print(response)
   else:
     response_json = response.json()
-    body = ast.literal_eval(response_json.get('body', {}))
-    result = body.get('results')
+    body = ast.literal_eval(response_json.get('body', {}).replace('null', '"NA"'))
+    results = body.get('results')
+    result = results[0]
     
-    return [result['ticker'], result['name'], result['prior_year'], result['datapoint'], result['datavalue']]
+    return [result['ticker'], result['name'], result['type'], result['sector'], result['sector_name'], result['subsector'], result['subsector_name'], result['industry'],
+            result['industry_name'], result['subindustry'], result['subindustry_name'], result['last_trade_date']]
 
 
 def write_results_to_csv(file_name, results, header=None, truncate=False, delimiter=','):
