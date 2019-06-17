@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+
+import requests
+import os
+import csv
+import ast
+
+API_BASE_URL = 'https://api.newconstructs.com/v1'
+API_KEY = 'YOUR_KEY_HERE'
+
+
+def load_data_to_csv():
+  final_csv = '/tmp/new_constructs_sector_and_industry_sample.csv'
+  nc_endpoint = 'sector'
+  
+  tickers = ['TECHNOLOGYSEC', 'BEVERAGESI']
+  prior_years = [1, 2, 3]
+  datapoints = ['ROIC_WAVG', 'WACC_WAVG']
+  
+  headers = {
+    'x-api-key': API_KEY,
+    'accept': 'application/json',
+    'content-type': 'application/json'
+  }
+  
+  data = []
+  
+  for ticker in tickers:
+    print('Requesting data for {}...'.format(ticker))
+    for year in prior_years:
+      for datapoint in datapoints:
+        data_item = get_data(headers, nc_endpoint, ticker, year, datapoint)
+        if data_item and len(data_item) > 0:
+          data.append(data_item)
+  
+  write_results_to_csv(final_csv, data, header=['ticker', 'name', 'prior_year', 'datapoint', 'datavalue'], truncate=True, delimiter=',')
+
+
+def get_data(headers, nc_endpoint, ticker, year, datapoint):
+  url = '{}/{}/{}?datapoint={}&prior_year={}'.format(API_BASE_URL, nc_endpoint, ticker, datapoint, year)
+  
+  response = requests.get(url=url, headers=headers)
+  
+  if response.status_code != 200:
+    print(response)
+  else:
+    response_json = response.json()
+    body = ast.literal_eval(response_json.get('body', {}))
+    result = body.get('results')
+    
+    return [result['ticker'], result['name'], result['prior_year'], result['datapoint'], result['datavalue']]
+
+
+def write_results_to_csv(file_name, results, header=None, truncate=False, delimiter=','):
+  if not file_name:
+    return
+  
+  # if the directory does not exist, make it
+  save_dir = os.path.dirname(file_name)
+  if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+  
+  open_type = 'w' if truncate else 'a'
+  with open(file_name, open_type) as out:
+    csv_out = csv.writer(out, delimiter=delimiter)
+    if os.stat(file_name).st_size <= 0:
+      csv_out.writerow(header)
+    for row in results:
+      csv_out.writerow(row)
+    out.close()
+
+
+if __name__ == '__main__':
+  load_data_to_csv()
