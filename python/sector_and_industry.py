@@ -5,16 +5,16 @@ import os
 import csv
 import ast
 
-##############################################################################################
+################################################################################################
 # Thanks for your interest in New Constructs!
-# This file demonstrates requesting data for MSFT from our sector & industry API.
+# This file demonstrates requesting data for some example tickers from our sector & industry API.
 # For information on all our datasets, see:
 # https://www.newconstructs.com/data
 # https://client.newconstructs.com/nc/documentation/api.htm
 #
 # Need an API key?
 # Request one by emailing us at support@newconstructs.com .
-##############################################################################################
+################################################################################################
 
 API_BASE_URL = 'https://api.newconstructs.com/v1'
 API_KEY = 'YOUR_KEY_HERE'

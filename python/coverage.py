@@ -7,7 +7,7 @@ import ast
 
 ##############################################################################################
 # Thanks for your interest in New Constructs!
-# This file demonstrates requesting data for MSFT from our coverage API.
+# This file demonstrates requesting data for some example tickers from our coverage API.
 # For information on all our datasets, see:
 # https://www.newconstructs.com/data
 # https://client.newconstructs.com/nc/documentation/api.htm
