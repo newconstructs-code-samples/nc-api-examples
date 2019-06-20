@@ -42,11 +42,16 @@ def load_data_to_csv():
 def get_datapoint(headers, datapoint):
   url = '{}/{}/{}'.format(API_BASE_URL, 'datapoint', datapoint)
   response = requests.get(url=url, headers=headers)
-  response_json = response.json()
-  body = ast.literal_eval(response_json.get('body', {}))
-  results = body.get('results')
   
-  return [results['api_data_key_name'], results['description'], results['endpoints']]
+  if response.status_code != 200:
+    print('Datapoint {}: {}'.format(datapoint, response.json()['message']))
+    return [datapoint, 'Not found']
+  else:
+    response_json = response.json()
+    body = ast.literal_eval(response_json.get('body', {}))
+    results = body.get('results')
+    
+    return [results['api_data_key_name'], results['description'], results['endpoints']]
 
 
 def write_results_to_csv(file_name, results, header=None, truncate=False, delimiter=','):

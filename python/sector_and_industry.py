@@ -52,7 +52,8 @@ def get_data(headers, nc_endpoint, ticker, year, datapoint):
   response = requests.get(url=url, headers=headers)
   
   if response.status_code != 200:
-    print(response)
+    print('Ticker {}, datapoint {}, prior_year {}: {}'.format(ticker, datapoint, year, response.json()['message']))
+    return [ticker, '', year, datapoint, 'NA']
   else:
     response_json = response.json()
     body = ast.literal_eval(response_json.get('body', {}))

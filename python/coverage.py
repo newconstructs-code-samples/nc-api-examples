@@ -55,7 +55,8 @@ def get_data(headers, nc_endpoint, type, ticker):
   response = requests.get(url=url, headers=headers)
   
   if response.status_code != 200:
-    print(response)
+    print('Ticker {}: {}'.format(ticker, response.json()['message']))
+    return [ticker, 'Not found']
   else:
     response_json = response.json()
     body = ast.literal_eval(response_json.get('body', {}).replace('null', '"NA"'))

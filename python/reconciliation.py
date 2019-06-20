@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
-import ast
-import csv
-import os
-
 import requests
+import os
+import csv
+import ast
 
 ##############################################################################################
 # Thanks for your interest in New Constructs!
-# This file demonstrates requesting data for MSFT from our fundamentals API.
+# This file demonstrates requesting data for MSFT from our reconciliation API.
 # For information on all our datasets, see:
 # https://www.newconstructs.com/data
 # https://client.newconstructs.com/nc/documentation/api.htm
@@ -20,19 +19,21 @@ import requests
 API_BASE_URL = 'https://api.newconstructs.com/v1'
 API_KEY = 'YOUR_KEY_HERE'
 
-# There are two endpoints in our fundamentals API: reported and adjusted
-ENDPOINT = 'reported'
-
+# There are five endpoints in our metrics API: revenue-to-ebitda, book-value-to-invested-capital, net-income-to-nopat, market-value-to-ev, total-assets-to-invested-capital
+ENDPOINT = 'revenue-to-ebitda'
 
 def load_data_to_csv():
-  final_csv = '/tmp/new_constructs_{}_fundamentals_sample.csv'.format(ENDPOINT)
-  nc_endpoint = 'fundamentals/{}'.format(ENDPOINT)
-  
+  final_csv = '/tmp/new_constructs_{}_reconciliation_sample.csv'.format(ENDPOINT)
+  nc_endpoint = 'reconciliation/{}'.format(ENDPOINT)
+
   tickers = ['MSFT']
-  years = [2017, 2018]
-  period_types = ['annual', 'quarter', 'ttm']
-  periods = [1,2,3,4]
-  datapoints = ['ACCOUNTS_PAYABLE', 'ACCOUNTS_RECEIVABLE']
+  years = [2017]
+  periods = {
+    'annual': [5],
+    'quarter': [1, 2, 3, 4],
+    'ttm': [1, 2, 3, 4],
+  }
+  datapoints = ['REVENUE', 'INCOME_OPERATING']
   
   headers = {
     'x-api-key': API_KEY,
@@ -41,44 +42,47 @@ def load_data_to_csv():
   }
   
   data = []
-  
+ 
   for ticker in tickers:
     print('Requesting data for {}...'.format(ticker))
     for year in years:
       for period_type in periods.keys():
         for period in periods.get(period_type):
           for datapoint in datapoints:
-            data.append(get_data(headers, nc_endpoint, ticker, year, period_type, period, datapoint))
-  
+              data += get_data(headers, nc_endpoint, ticker, year, period_type, period, datapoint)
+
   write_results_to_csv(final_csv, data, header=['ticker', 'year', 'period', 'periodtype', 'periodstring', 'datapoint', 'datavalue'], truncate=True, delimiter=',')
 
 
 def get_data(headers, nc_endpoint, ticker, year, period_type, period, datapoint):
   url = '{}/{}/{}?datapoint={}&year={}'.format(API_BASE_URL, nc_endpoint, ticker, datapoint, year)
   url_period = '' if period_type == 'annual' else '&{}={}'.format(period_type, period)
-  
+
+  data = []
   response = requests.get(url='{}{}'.format(url, url_period), headers=headers)
-  
+        
   if response.status_code != 200:
     print('Ticker {}, datapoint {}, year {}, periodtype {}, period {}: {}'.format(ticker, datapoint, year, period_type.upper(), period, response.json()['message']))
-    return[ticker, year, period, period_type.upper(), '', datapoint, 'NA']
+    return [[ticker, year, period, period_type.upper(), '', datapoint, 'NA']]
   else:
     response_json = response.json()
     body = ast.literal_eval(response_json.get('body', {}))
-    result = body.get('results')
+    results = body.get('results')
+    for result in results:
+      data.append([result['ticker'], result['year'], result['period'], result['periodtype'], result['periodstring'], result['datapoint'], result['datavalue']])
     
-    return [result['ticker'], result['year'], result['period'], result['periodtype'], result['periodstring'], result['datapoint'], result['datavalue']]
+    return data
 
 
 def write_results_to_csv(file_name, results, header=None, truncate=False, delimiter=','):
   if not file_name:
     return
-  
+
   # if the directory does not exist, make it
   save_dir = os.path.dirname(file_name)
   if not os.path.exists(save_dir):
     os.makedirs(save_dir)
-  
+
   open_type = 'w' if truncate else 'a'
   with open(file_name, open_type) as out:
     csv_out = csv.writer(out, delimiter=delimiter)
@@ -87,7 +91,7 @@ def write_results_to_csv(file_name, results, header=None, truncate=False, delimi
     for row in results:
       csv_out.writerow(row)
     out.close()
-
-
+  
+  
 if __name__ == '__main__':
   load_data_to_csv()
