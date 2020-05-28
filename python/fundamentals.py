@@ -21,7 +21,7 @@ API_BASE_URL = 'https://api.newconstructs.com/v1'
 API_KEY = 'YOUR_KEY_HERE'
 
 # There are two endpoints in our fundamentals API: reported and adjusted
-ENDPOINT = 'reported'
+ENDPOINT = 'adjusted'
 
 
 def load_data_to_csv():
@@ -30,8 +30,11 @@ def load_data_to_csv():
   
   tickers = ['MSFT']
   years = [2017, 2018]
-  period_types = ['annual', 'quarter', 'ttm']
-  periods = [1,2,3,4]
+  periods = {
+    'annual': [5],
+    'quarter': [1, 2, 3, 4],
+    'ttm': [1, 2, 3, 4],
+  }
   datapoints = ['ACCOUNTS_PAYABLE', 'ACCOUNTS_RECEIVABLE']
   
   headers = {
