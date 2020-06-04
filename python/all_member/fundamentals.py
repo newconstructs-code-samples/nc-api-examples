@@ -14,7 +14,7 @@ import requests
 # https://client.newconstructs.com/nc/documentation/api.htm
 #
 # Need an API key?
-# Request one by emailing us at support@newconstructs.com .
+# Request one at https://client.newconstructs.com/nc/documentation/api/installation.htm
 ##############################################################################################
 
 API_BASE_URL = 'https://api.newconstructs.com/v1'
