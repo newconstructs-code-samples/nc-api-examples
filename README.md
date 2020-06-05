@@ -3,7 +3,7 @@
 New Constructs is creating a new paradigm for fundamental data. This repo contains code examples for interacting with our API.
 
 #### Access Plans
-Access to our API is included with all [New Constructs Memberships](https://www.newconstructs.com/membership/), including individual investor and professional plans. Please contact [support](support@newconstructs.com) for more information.
+Access to our API is included with all [New Constructs Memberships](https://www.newconstructs.com/membership/), including individual investor and professional plans. Please contact [support](mailto:support@newconstructs.com?subject=[GitHub]%20NC%20Code%20Samples) for more information.
 
 ##### Gold, Platinum, and Pro access includes:
 
